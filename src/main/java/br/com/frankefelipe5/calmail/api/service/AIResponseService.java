@@ -2,7 +2,9 @@ package br.com.frankefelipe5.calmail.api.service;
 
 import br.com.frankefelipe5.calmail.api.repository.AIResponseRepository;
 import jakarta.transaction.Transactional;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import br.com.frankefelipe5.calmail.api.assembler.AIResponseAssembler;
@@ -31,8 +33,10 @@ public class AIResponseService {
         this.chatModel = chatModel;
     }
 
-    public List<AIResponseDTO> listAll() {
-        List<AIResponse> responseList = aiResponseRepository.findAll();
+    public List<AIResponseDTO> listAll(boolean orderByCreatedAt) {
+        List<AIResponse> responseList = orderByCreatedAt ?
+                Optional.ofNullable(aiResponseRepository.findByOrderByCreatedAtAsc()).orElse(Collections.emptyList()) :
+                Optional.ofNullable(aiResponseRepository.findAll()).orElse(Collections.emptyList());
         return responseList.stream()
                 .map(aiResponseAssembler::toModel)
                 .collect(Collectors.toList());
@@ -51,7 +55,7 @@ public class AIResponseService {
     public AIResponseDTO saveData(Request request) {
         String generatedResponse = new APIRequest(request, chatModel, aiResponseRepository).getGeneratedResponse();
         String responseToBeSaved = getResponseToBeSaved(generatedResponse);
-        AIResponse aiResponse = aiResponseRepository.save(new AIResponse(responseToBeSaved));
+        AIResponse aiResponse = aiResponseRepository.save(new AIResponse(request, responseToBeSaved));
         return aiResponseAssembler.toModel(aiResponse);
     }
 

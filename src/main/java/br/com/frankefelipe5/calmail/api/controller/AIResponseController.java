@@ -6,6 +6,7 @@ import java.util.UUID;
 import br.com.frankefelipe5.calmail.api.dto.AIResponseDTO;
 import br.com.frankefelipe5.calmail.api.dto.Request;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,8 +47,16 @@ public class AIResponseController {
 
     @CrossOrigin
     @GetMapping("/list")
-    public ResponseEntity<List<AIResponseDTO>> listResponses() {
-        return ResponseEntity.ok().body(aiResponseService.listAll());
+    public ResponseEntity<List<AIResponseDTO>> listResponses(
+        @RequestParam(required = false, defaultValue = "false") String orderByCreatedAt
+    ) {
+
+        boolean order;
+        if (!orderByCreatedAt.equalsIgnoreCase("true") && !orderByCreatedAt.equalsIgnoreCase("false")) {
+            order = false;
+        }
+        order = Boolean.parseBoolean(orderByCreatedAt);
+        return ResponseEntity.ok().body(aiResponseService.listAll(order));
     }
 
     @CrossOrigin

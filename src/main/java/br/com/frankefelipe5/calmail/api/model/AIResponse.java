@@ -1,11 +1,14 @@
 package br.com.frankefelipe5.calmail.api.model;
 
+import br.com.frankefelipe5.calmail.api.dto.Request;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import java.time.Instant;
 import java.util.UUID;
+import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 public class AIResponse {
@@ -22,12 +25,30 @@ public class AIResponse {
         this.setResponseText(responseText);
     }
 
+    public AIResponse(UUID id, String responseText, Instant createdAt) {
+        this.setId(id);
+        this.setResponseText(responseText);
+        this.setCreatedAt(createdAt);
+    }
+
+    public AIResponse(Request request, String responseText) {
+        this.request = request;
+        this.responseText = responseText;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column
+    @Column(nullable = false, updatable = false)
+    private Request request;
+
+    @Column(nullable = false, updatable = false)
     private String responseText;
+
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt;
 
     public UUID getId() {
         return id;
@@ -37,12 +58,28 @@ public class AIResponse {
         this.id = id;
     }
 
+    public Request getRequest() {
+        return request;
+    }
+
+    public void setRequest(Request request) {
+        this.request = request;
+    }
+
     public String getResponseText() {
         return responseText;
     }
 
     public void setResponseText(String responseText) {
         this.responseText = responseText;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 
     @Override
