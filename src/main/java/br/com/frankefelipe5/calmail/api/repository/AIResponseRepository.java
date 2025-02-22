@@ -7,6 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AIResponseRepository extends JpaRepository<AIResponse, UUID> {
 
-    List<AIResponse> findByOrderByCreatedAtAsc();
-
+  List<AIResponse> findByOrderByCreatedAtAsc();
 }

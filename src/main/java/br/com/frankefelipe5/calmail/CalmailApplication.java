@@ -6,8 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class CalmailApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(CalmailApplication.class, args);
-	}
-
+  public static void main(String[] args) {
+    SpringApplication.run(CalmailApplication.class, args);
+  }
 }
