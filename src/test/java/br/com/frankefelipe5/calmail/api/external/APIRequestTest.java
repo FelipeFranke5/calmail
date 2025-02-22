@@ -11,13 +11,19 @@ import br.com.frankefelipe5.calmail.api.dto.Request;
 import br.com.frankefelipe5.calmail.api.exception.APIRequestException;
 import br.com.frankefelipe5.calmail.api.model.AIResponse;
 import br.com.frankefelipe5.calmail.api.repository.AIResponseRepository;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
@@ -27,7 +33,12 @@ import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.openai.OpenAiChatModel;
 
+@DisplayName("Test for APIRequest and its methods")
 public class APIRequestTest {
+
+  static Instant beforeAllInstant;
+  static Instant afterAllInstant;
+  static final Logger logger = LoggerFactory.getLogger(APIRequestTest.class);
 
   @Mock private OpenAiChatModel chatModel;
 
@@ -37,15 +48,30 @@ public class APIRequestTest {
 
   private APIRequest apiRequest;
 
+  @BeforeAll
+  public static void setUpBeforeAll() {
+    logger.info("Starting tests for APIRequest ..");
+    beforeAllInstant = Instant.now();
+  }
+
+  @AfterAll
+  public static void tearDownAfterAll() {
+    afterAllInstant = Instant.now();
+    Duration duration = Duration.between(beforeAllInstant, afterAllInstant);
+    logger.info("Duration in seconds: " + duration.toSeconds());
+    logger.info("Duration in milis: " + duration.toMillis());
+    logger.info("End of tests for APIRequest ..");
+  }
+
   @BeforeEach
-  private void setup() {
+  private void setUp() {
     MockitoAnnotations.openMocks(this);
     apiRequest = spy(new APIRequest(request, chatModel, aiResponseRepository));
   }
 
   @Test
   @DisplayName("Test getGeneratedResponse returns a String when we have a list of messages")
-  void testGetGeneratedResponseReturnsString() {
+  void testGetGeneratedResponse_When_MessagesListHasOneMessage_ShouldReturnAssistantMessage() {
     // Given
     List<Message> messages = buildDefaultMessageListOne();
     ChatResponse chatResponse = buildDefaultChatResponseOne();
@@ -55,7 +81,7 @@ public class APIRequestTest {
     // When
     String generatedResponse = apiRequest.getGeneratedResponse();
     // Then
-    assertNotNull(generatedResponse);
+    assertNotNull(generatedResponse, () -> "generatedResponse returned null");
     assertTrue(generatedResponse.equals("assistant message"));
   }
 
@@ -65,7 +91,7 @@ public class APIRequestTest {
 
   @Test
   @DisplayName("Test getPrompt throws APIRequestException when the list of messages is null")
-  void testGetPromptThrowsExceptionWhenListIsNull() {
+  void testGetPrompt_When_MessagesListIsNull_ShouldThrowAPIRequestException() {
     // Given
     List<Message> messages = null;
     Mockito.doReturn(messages).when(apiRequest).getMessages();
@@ -77,26 +103,35 @@ public class APIRequestTest {
               apiRequest.getPrompt();
             });
     // Then
-    assertEquals("list of messages cannot be null", exception.getMessage());
+    assertEquals(
+        "list of messages cannot be null",
+        exception.getMessage(),
+        () ->
+            "expected literal 'list of messages cannot be null', got '"
+                + exception.getMessage()
+                + "' as the exception message");
   }
 
   @Test
   @DisplayName("Test getPrompt does not throw when the list of messages is not null")
-  void testGetPromptDoesNotThrowWhenListIsNotNull() {
+  void testGetPrompt_When_MessagesListIsNotNull_ShouldReturnPromptInstance() {
     // Given
     List<Message> messages = buildDefaultMessageListOne();
     Mockito.doReturn(messages).when(apiRequest).getMessages();
     // When
     Prompt prompt = apiRequest.getPrompt();
     // Then
-    assertNotNull(prompt);
-    assertTrue(prompt.getInstructions().size() == 2);
+    assertNotNull(prompt, () -> "the prompt is null, which is not expected in this test");
+    assertTrue(
+        prompt.getInstructions().size() == 2,
+        () -> "prompt.getInstructions().size() does not equal 2");
   }
 
   @Test
   @DisplayName(
       "Test getPrompt throws APIRequestException when one of the messages have empty content")
-  void testGetPromptThrowsExceptionWhenListSizeDoesNotEqualTwo() {
+  void
+      testGetPrompt_When_MessagesListHasOneMessageWithEmptyContent_ShouldThrowAPIRequestException() {
     // Given
     List<Message> messages = buildDefaultMessageListTwo();
     Mockito.doReturn(messages).when(apiRequest).getMessages();
@@ -108,12 +143,18 @@ public class APIRequestTest {
               apiRequest.getPrompt();
             });
     // Then
-    assertEquals("all messages should have content", exception.getMessage());
+    assertEquals(
+        "all messages should have content",
+        exception.getMessage(),
+        () ->
+            "expected literal 'all messages should have content', got '"
+                + exception.getMessage()
+                + "' as the exception message");
   }
 
   @Test
   @DisplayName("Test getMessages throws APIRequestException when one of the messages is null")
-  void testGetMessagesThrowsExceptionWhenOneMessageIsNull() {
+  void testGetMessages_When_OneMessageIsNull_ShouldThrowAPIRequestException() {
     // Given
     Message message1 = buildDefaultSystemMessageOne();
     Message message2 = null;
@@ -127,12 +168,18 @@ public class APIRequestTest {
               apiRequest.getMessages();
             });
     // Then
-    assertEquals("user message cannot be null", exception.getMessage());
+    assertEquals(
+        "user message cannot be null",
+        exception.getMessage(),
+        () ->
+            "expected literal 'user message cannot be null', got '"
+                + exception.getMessage()
+                + "' as the exception message");
   }
 
   @Test
   @DisplayName("Test getMessages does not throw when all messages are not null")
-  void testGetMessagesDoesNotThrowWhenMessagesAreNotNull() {
+  void testGetMessages_When_MessagesAreNotNull_ShouldReturnListOfMessages() {
     // Given
     Message message1 = buildDefaultSystemMessageOne();
     Message message2 = buildDefaultUserMessageOne();
@@ -141,13 +188,13 @@ public class APIRequestTest {
     // When
     List<Message> messages = apiRequest.getMessages();
     // Then
-    assertNotNull(messages);
+    assertNotNull(messages, () -> "'messages' is null, which is not excpected here");
     assertTrue(messages.size() == 2);
   }
 
   @Test
   @DisplayName("Test getUserMessage throws APIRequestException when requestData is empty")
-  void testGetUserMessageThrowsExceptionWhenRequestDataIsEmpty() {
+  void testGetUserMessage_When_RequestDataIsEmpty_ShouldThrowAPIRequestException() {
     // Given
     String requestData = "";
     String systemRole = "am filled";
@@ -163,12 +210,15 @@ public class APIRequestTest {
               apiRequest.getUserMessage();
             });
     // Then
-    assertEquals("request data cannot be empty", exception.getMessage());
+    assertEquals(
+        "request data cannot be empty",
+        exception.getMessage(),
+        () -> "got different String for exception.getMessage()");
   }
 
   @Test
   @DisplayName("Test getUserMessage throws APIRequestException when systemRole is empty")
-  void testGetUserMessageThrowsExceptionWhenSystemRoleIsEmpty() {
+  void testGetUserMessage_When_SystemRoleIsEmpty_ShouldThrowAPIRequestException() {
     // Given
     String requestData = "am filled";
     String systemRole = "";
@@ -184,12 +234,15 @@ public class APIRequestTest {
               apiRequest.getUserMessage();
             });
     // Then
-    assertEquals("system role cannot be empty", exception.getMessage());
+    assertEquals(
+        "system role cannot be empty",
+        exception.getMessage(),
+        () -> "got different String for exception.getMessage()");
   }
 
   @Test
   @DisplayName("Test getUserMessage does not throw when systemRole and requestData are not empty")
-  void testGetUserMessageReturnsMessageWhenRequestDataAndSystemRoleAreFilled() {
+  void testGetUserMessage_When_SystemRoleAndRequestDataAreNotNull_ShouldReturnMessageInstance() {
     // Given
     String requestData = "am filled req data";
     String systemRole = "am filled sys role";
@@ -207,11 +260,11 @@ public class APIRequestTest {
 
   @Test
   @DisplayName("Test getSystemMessage throws APIRequestException when systemRoleMessage is empty")
-  void testGetSystemMessageThrowsExceptionWhenSystemRoleMessageIsEmpty() {
-    // Givem
+  void testGetSystemMessage_When_SystemRoleIsEmpty_ShouldThrowAPIRequestException() {
+    // Given
     String systemRoleMessage = "";
     Mockito.doReturn(systemRoleMessage).when(apiRequest).getSystemRoleFromFile();
-    // When + Then
+    // When
     APIRequestException exception =
         assertThrowsExactly(
             APIRequestException.class,
@@ -219,12 +272,16 @@ public class APIRequestTest {
               apiRequest.getSystemMessage();
             });
     assertNotNull(exception);
-    assertEquals("ai_role_pt.txt cannot be empty", exception.getMessage());
+    // Then
+    assertEquals(
+        "ai_role_pt.txt cannot be empty",
+        exception.getMessage(),
+        () -> "got different String for exception.getMessage()");
   }
 
   @Test
   @DisplayName("Test getSystemMessage does not throw when systemRoleMessage is filled")
-  void testGetSystemMessageDoesNotThrowWhenSystemRoleMessageIsFilled() {
+  void testGetSystemMessage_When_SystemRoleIsNotEmpty_ShouldReturnSystemMessage() {
     // Given
     String systemRoleMessage = "am filled";
     Mockito.doReturn(systemRoleMessage).when(apiRequest).getSystemRoleFromFile();
