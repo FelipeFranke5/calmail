@@ -3,6 +3,7 @@ package br.com.frankefelipe5.calmail.api.util;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import br.com.frankefelipe5.calmail.api.exception.AIResponseException;
 import br.com.frankefelipe5.calmail.api.model.AIResponse;
 import br.com.frankefelipe5.calmail.api.repository.AIResponseRepository;
 import java.io.IOException;
@@ -114,5 +115,21 @@ public class AIResponseFileWriterTest {
     aiResponseFileWriter.deleteFileWithResponses();
     // Then
     assertFalse(Files.exists(Paths.get("src/main/resources/responses.txt")));
+  }
+
+  @Test
+  @DisplayName(
+      "Test deleteFileWithResponses throws AIResponseException when the file does not exist")
+  void testDeleteFileWithResponses_When_FileDoesNotExist_ShouldThrowAIResponseException() {
+    AIResponseException expectedException =
+        assertThrowsExactly(
+            AIResponseException.class,
+            () -> {
+              aiResponseFileWriter.deleteFileWithResponses();
+              aiResponseFileWriter.deleteFileWithResponses();
+            });
+    assertEquals(
+        "an error ocurred while deleting the file containing saved responses",
+        expectedException.getMessage());
   }
 }

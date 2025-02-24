@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,41 +28,47 @@ public class AIResponseController {
     this.aiResponseService = aiResponseService;
   }
 
-  // Methods that do require ID below
+  // Methods that do require ID
 
   @CrossOrigin
   @GetMapping("/generated/{id}")
+  @PreAuthorize("hasRole('ROLE_USER')")
   public ResponseEntity<AIResponseDTO> getResponseById(@PathVariable UUID id) {
     return ResponseEntity.ok().body(aiResponseService.findResponseById(id));
   }
 
   @CrossOrigin
   @DeleteMapping("/generated/{id}")
+  @PreAuthorize("hasRole('USER')")
   public ResponseEntity<Void> deleteResponseById(@PathVariable UUID id) {
     aiResponseService.deleteResponseById(id);
     return ResponseEntity.noContent().build();
   }
 
-  // Methods that do not require ID below
+  // Methods that do not require ID
 
   @CrossOrigin
   @GetMapping("/generated")
+  @PreAuthorize("hasRole('USER')")
   public ResponseEntity<HashMap<String, Object>> listResponses(
       @RequestParam(required = false, defaultValue = "false") String orderByCreatedAt) {
 
     boolean order;
-    if (!orderByCreatedAt.equalsIgnoreCase("true") && !orderByCreatedAt.equalsIgnoreCase("false")) {
-      order = false;
-    }
-    order = Boolean.parseBoolean(orderByCreatedAt);
+    boolean orderStringIsTrue = orderByCreatedAt.equalsIgnoreCase("true");
+    boolean orderStringIsFalse = orderByCreatedAt.equalsIgnoreCase("false");
+    order =
+        (!orderStringIsTrue && !orderStringIsFalse)
+            ? false
+            : Boolean.parseBoolean(orderByCreatedAt);
     HashMap<String, Object> responseBody = new HashMap<>();
-    responseBody.put("order", order);
     responseBody.put("results", aiResponseService.listAll(order));
+    responseBody.put("order", order);
     return ResponseEntity.ok().body(responseBody);
   }
 
   @CrossOrigin
   @PostMapping("/create")
+  @PreAuthorize("hasRole('USER')")
   public ResponseEntity<AIResponseDTO> createScript(@RequestBody Request requestBody) {
     AIResponseDTO response = aiResponseService.saveData(requestBody);
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -69,6 +76,7 @@ public class AIResponseController {
 
   @CrossOrigin
   @DeleteMapping("/clear")
+  @PreAuthorize("hasRole('USER')")
   public ResponseEntity<Void> clear() {
     aiResponseService.clearResponses();
     return ResponseEntity.noContent().build();

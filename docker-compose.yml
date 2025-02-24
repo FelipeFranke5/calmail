@@ -1,0 +1,29 @@
+services:
+  api:
+    image: frankefelipe5/calmail
+    ports:
+      - "8080:8080"
+    networks:
+      - api_net
+    depends_on:
+      - auth-with-keycloak
+    env_file: ".env"
+  auth-with-keycloak:
+    image: quay.io/keycloak/keycloak:26.1
+    environment:
+      KC_HOSTNAME: ${KC_HOSTNAME}
+      KC_HOSTNAME_PORT: 7080
+      KC_HOSTNAME_STRICT_BACKCHANNEL: "true"
+      KC_LOG_LEVEL: info
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+    ports:
+      - "7080:7080"
+      - "7443:7443"
+    networks:
+      - api_net
+    env_file: ".env"
+    command: ["start-dev", "--http-port", "7080", "--https-port", "7443"]
+networks:
+  api_net:
+    driver: bridge
