@@ -15,5 +15,8 @@ public record UserDTO(
       throw new UserDTOException(
           "missing one of required fields: clientId, username, password, grantType");
     }
+    if (!grantType.equalsIgnoreCase("password")) {
+      throw new UserDTOException("grantType must be password");
+    }
   }
 }

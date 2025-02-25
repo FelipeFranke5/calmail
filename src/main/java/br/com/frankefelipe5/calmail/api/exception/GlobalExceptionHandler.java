@@ -76,4 +76,14 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ErrorResponse> handleUserDTOException(UserDTOException e) {
     return ResponseEntity.badRequest().body(new ErrorResponse(8, e.getMessage()));
   }
+
+  @ExceptionHandler(AuthResponseException.class)
+  public ResponseEntity<ErrorResponse> handleAuthResponseException(AuthResponseException e) {
+    HashMap<String, Object> detail = new HashMap<>();
+    HashMap<String, Object> error = new HashMap<>();
+    detail.put("message", "could not get access token");
+    detail.put("error", e.getMessage());
+    error.put("error", detail);
+    return ResponseEntity.badRequest().body(new ErrorResponse(9, error));
+  }
 }
