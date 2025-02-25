@@ -66,8 +66,8 @@ public class AuthRequest {
               .retrieve()
               .body(AuthResponseDTO.class);
       if (response == null) {
-        logger.error("error getting access token");
-        logger.error(this.getBody().toString());
+        logger.error("error getting access token - response is null");
+        logger.error("payload: " + this.getBody().toString());
         throw new AuthResponseException("error getting access token");
       }
       return response.getAccessToken();
