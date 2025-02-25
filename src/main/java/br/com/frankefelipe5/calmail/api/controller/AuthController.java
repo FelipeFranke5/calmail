@@ -2,6 +2,8 @@ package br.com.frankefelipe5.calmail.api.controller;
 
 import br.com.frankefelipe5.calmail.api.dto.UserDTO;
 import br.com.frankefelipe5.calmail.api.service.AuthService;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import javax.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,7 +22,10 @@ public class AuthController {
   }
 
   @PostMapping
-  public ResponseEntity<String> getAuthToken(@RequestBody @Valid UserDTO userDTO) {
-    return ResponseEntity.ok(this.authService.getAuthToken(userDTO));
+  public ResponseEntity<HashMap<String, Object>> getAuthToken(@RequestBody @Valid UserDTO userDTO) {
+    HashMap<String, Object> response = new HashMap<>();
+    response.put("timestamp", LocalDateTime.now().toString());
+    response.put("acess_token", this.authService.getAuthToken(userDTO));
+    return ResponseEntity.ok(response);
   }
 }

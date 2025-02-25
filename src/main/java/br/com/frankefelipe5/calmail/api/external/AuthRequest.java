@@ -3,6 +3,7 @@ package br.com.frankefelipe5.calmail.api.external;
 import br.com.frankefelipe5.calmail.api.dto.AuthResponseDTO;
 import br.com.frankefelipe5.calmail.api.dto.UserDTO;
 import br.com.frankefelipe5.calmail.api.exception.AuthResponseException;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,12 +73,10 @@ public class AuthRequest {
       return response.getAccessToken();
     } catch (RestClientResponseException httpCallException) {
       HashMap<String, Object> detail = new HashMap<>();
-      detail.put("originalStatusCode", httpCallException.getStatusCode().value());
-      detail.put("originalBody", httpCallException.getResponseBodyAsString());
-      String errorMessage =
-          "could not get acess token because the Resource Server returned an error: "
-              + detail.toString();
-      throw new AuthResponseException(errorMessage);
+      detail.put("resourceServerStatusCode", httpCallException.getStatusCode().value());
+      detail.put("resourceServerResponseBody", httpCallException.getResponseBodyAsString());
+      detail.put("timestamp", LocalDateTime.now().toString());
+      throw new AuthResponseException(detail.toString());
     } catch (Exception e) {
       logger.error("error getting access token - exception raised");
       logger.error("payload: " + this.getBody().toString());
