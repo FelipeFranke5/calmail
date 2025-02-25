@@ -80,10 +80,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(AuthResponseException.class)
   public ResponseEntity<ErrorResponse> handleAuthResponseException(AuthResponseException e) {
     HashMap<String, Object> detail = new HashMap<>();
-    HashMap<String, Object> error = new HashMap<>();
-    detail.put("message", "could not get access token");
-    detail.put("error", e.getMessage());
-    error.put("error", detail);
-    return ResponseEntity.badRequest().body(new ErrorResponse(9, error));
+    detail.put("message", e.getMessage());
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(9, detail));
   }
 }

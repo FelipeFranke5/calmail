@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.BodyInserters.FormInserter;
 
 public class AuthRequest {
 
@@ -18,7 +20,7 @@ public class AuthRequest {
   private static final Logger logger = LoggerFactory.getLogger(AuthRequest.class);
   private UserDTO userDTO;
   private RestClient restClient;
-  private HashMap<String, String> body;
+  private FormInserter<String> body;
 
   public AuthRequest(UserDTO userDTO) {
     this.userDTO = userDTO;
@@ -38,16 +40,16 @@ public class AuthRequest {
     return restClient;
   }
 
-  public HashMap<String, String> getBody() {
+  public FormInserter<String> getBody() {
     return body;
   }
 
   public void setBody() {
-    this.body = new HashMap<>();
-    this.body.put("client_id", this.userDTO.clientId());
-    this.body.put("username", this.userDTO.username());
-    this.body.put("password", this.userDTO.password());
-    this.body.put("grant_type", this.userDTO.grantType());
+    this.body =
+        BodyInserters.fromFormData("client_id", this.userDTO.clientId())
+            .with("username", this.userDTO.username())
+            .with("password", this.userDTO.password())
+            .with("grant_type", this.userDTO.grantType());
   }
 
   public void setRestClient() {
@@ -83,10 +85,9 @@ public class AuthRequest {
       throw new AuthResponseException(errorMessage);
     } catch (Exception e) {
       logger.error("error getting access token - exception raised");
-      logger.error(this.getBody().toString());
-      logger.error(e.getMessage());
-      logger.error(e.getStackTrace().toString());
-      throw new AuthResponseException("error getting access token because of an internal error");
+      logger.error("payload: " + this.getBody().toString());
+      logger.error("exception message: " + e.getMessage());
+      throw new AuthResponseException("could not get access token");
     }
   }
 }
