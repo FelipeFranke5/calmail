@@ -8,10 +8,10 @@ import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.BodyInserters.FormInserter;
 
 public class AuthRequest {
 
@@ -20,7 +20,7 @@ public class AuthRequest {
   private static final Logger logger = LoggerFactory.getLogger(AuthRequest.class);
   private UserDTO userDTO;
   private RestClient restClient;
-  private FormInserter<String> body;
+  private MultiValueMap<String, String> body;
 
   public AuthRequest(UserDTO userDTO) {
     this.userDTO = userDTO;
@@ -40,23 +40,22 @@ public class AuthRequest {
     return restClient;
   }
 
-  public FormInserter<String> getBody() {
+  public MultiValueMap<String, String> getBody() {
     return body;
   }
 
   public void setBody() {
-    this.body =
-        BodyInserters.fromFormData("client_id", this.userDTO.clientId())
-            .with("username", this.userDTO.username())
-            .with("password", this.userDTO.password())
-            .with("grant_type", this.userDTO.grantType());
+    this.body = new LinkedMultiValueMap<>();
+    this.body.add("client_id", this.userDTO.clientId());
+    this.body.add("username", this.userDTO.username());
+    this.body.add("password", this.userDTO.password());
+    this.body.add("grant_type", this.userDTO.grantType());
   }
 
   public void setRestClient() {
     this.restClient =
         RestClient.builder()
             .baseUrl(KC_TOKEN_BASE_URL)
-            .defaultHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED_VALUE)
             .build();
   }
 
@@ -66,6 +65,7 @@ public class AuthRequest {
           this.restClient
               .post()
               .uri(URI.create("protocol/openid-connect/token"))
+              .contentType(MediaType.APPLICATION_FORM_URLENCODED)
               .body(this.getBody())
               .retrieve()
               .body(AuthResponseDTO.class);
