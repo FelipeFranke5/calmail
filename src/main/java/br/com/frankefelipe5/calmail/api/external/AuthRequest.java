@@ -3,7 +3,6 @@ package br.com.frankefelipe5.calmail.api.external;
 import br.com.frankefelipe5.calmail.api.dto.AuthResponseDTO;
 import br.com.frankefelipe5.calmail.api.dto.UserDTO;
 import br.com.frankefelipe5.calmail.api.exception.AuthResponseException;
-import java.net.URI;
 import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +14,7 @@ import org.springframework.web.client.RestClientResponseException;
 
 public class AuthRequest {
 
-  private static final String KC_TOKEN_BASE_URL = System.getenv("KC_ISSUER_URL");
+  private static final String KC_TOKEN_BASE_URL = System.getenv("KC_REQUEST_BASE_URL");
 
   private static final Logger logger = LoggerFactory.getLogger(AuthRequest.class);
   private UserDTO userDTO;
@@ -53,10 +52,7 @@ public class AuthRequest {
   }
 
   public void setRestClient() {
-    this.restClient =
-        RestClient.builder()
-            .baseUrl(KC_TOKEN_BASE_URL)
-            .build();
+    this.restClient = RestClient.builder().baseUrl(KC_TOKEN_BASE_URL).build();
   }
 
   public String getAccessToken() {
@@ -64,7 +60,6 @@ public class AuthRequest {
       AuthResponseDTO response =
           this.restClient
               .post()
-              .uri(URI.create("protocol/openid-connect/token"))
               .contentType(MediaType.APPLICATION_FORM_URLENCODED)
               .body(this.getBody())
               .retrieve()

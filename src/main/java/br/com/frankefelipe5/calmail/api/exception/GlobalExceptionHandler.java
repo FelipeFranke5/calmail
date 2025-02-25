@@ -79,6 +79,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(AuthResponseException.class)
   public ResponseEntity<ErrorResponse> handleAuthResponseException(AuthResponseException e) {
-    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse(9, e.getMessage()));
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        .body(new ErrorResponse(9, e.getMessage()));
   }
 }
