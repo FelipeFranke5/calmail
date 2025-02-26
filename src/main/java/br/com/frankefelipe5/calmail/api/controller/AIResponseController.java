@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,14 +31,12 @@ public class AIResponseController {
 
   @CrossOrigin
   @GetMapping("/generated/{id}")
-  @PreAuthorize("hasRole('ROLE_USER')")
   public ResponseEntity<AIResponseDTO> getResponseById(@PathVariable UUID id) {
     return ResponseEntity.ok().body(aiResponseService.findResponseById(id));
   }
 
   @CrossOrigin
   @DeleteMapping("/generated/{id}")
-  @PreAuthorize("hasRole('USER')")
   public ResponseEntity<Void> deleteResponseById(@PathVariable UUID id) {
     aiResponseService.deleteResponseById(id);
     return ResponseEntity.noContent().build();
@@ -49,7 +46,6 @@ public class AIResponseController {
 
   @CrossOrigin
   @GetMapping("/generated")
-  @PreAuthorize("hasRole('USER')")
   public ResponseEntity<HashMap<String, Object>> listResponses(
       @RequestParam(required = false, defaultValue = "false") String orderByCreatedAt) {
 
@@ -68,7 +64,6 @@ public class AIResponseController {
 
   @CrossOrigin
   @PostMapping("/create")
-  @PreAuthorize("hasRole('USER')")
   public ResponseEntity<AIResponseDTO> createScript(@RequestBody Request requestBody) {
     AIResponseDTO response = aiResponseService.saveData(requestBody);
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -76,7 +71,6 @@ public class AIResponseController {
 
   @CrossOrigin
   @DeleteMapping("/clear")
-  @PreAuthorize("hasRole('USER')")
   public ResponseEntity<Void> clear() {
     aiResponseService.clearResponses();
     return ResponseEntity.noContent().build();
