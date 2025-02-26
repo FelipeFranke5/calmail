@@ -22,8 +22,8 @@ public class AuthController {
   }
 
   @PostMapping
-  public ResponseEntity<HashMap<String, Object>> getAuthToken(@RequestBody @Valid UserDTO userDTO) {
-    HashMap<String, Object> response = new HashMap<>();
+  public ResponseEntity<HashMap<String, String>> getAuthToken(@RequestBody @Valid UserDTO userDTO) {
+    HashMap<String, String> response = new HashMap<>();
     response.put("timestamp", LocalDateTime.now().toString());
     response.put("acess_token", this.authService.getAuthToken(userDTO));
     return ResponseEntity.ok(response);

@@ -3,8 +3,6 @@ package br.com.frankefelipe5.calmail.api.external;
 import br.com.frankefelipe5.calmail.api.dto.AuthResponseDTO;
 import br.com.frankefelipe5.calmail.api.dto.UserDTO;
 import br.com.frankefelipe5.calmail.api.exception.AuthResponseException;
-import java.time.LocalDateTime;
-import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -68,20 +66,23 @@ public class AuthRequest {
       if (response == null) {
         logger.error("error getting access token - response is null");
         logger.error("payload: " + this.getBody().toString());
-        throw new AuthResponseException("error getting access token");
+        throw new AuthResponseException(
+            "error getting access token - resourceServer returned null");
       }
       return response.getAccessToken();
     } catch (RestClientResponseException httpCallException) {
-      HashMap<String, Object> detail = new HashMap<>();
-      detail.put("resourceServerStatusCode", httpCallException.getStatusCode().value());
-      detail.put("resourceServerResponseBody", httpCallException.getResponseBodyAsString());
-      detail.put("timestamp", LocalDateTime.now().toString());
-      throw new AuthResponseException(detail.toString());
+      StringBuilder errorMessage = new StringBuilder();
+      errorMessage
+          .append("resource server returned with status code: ")
+          .append(httpCallException.getStatusCode().value())
+          .append(" - messge: ")
+          .append(httpCallException.getResponseBodyAsString());
+      throw new AuthResponseException(errorMessage.toString());
     } catch (Exception e) {
       logger.error("error getting access token - exception raised");
       logger.error("payload: " + this.getBody().toString());
       logger.error("exception message: " + e.getMessage());
-      throw new AuthResponseException("could not get access token");
+      throw new AuthResponseException("null");
     }
   }
 }

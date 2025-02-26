@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -32,7 +33,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(AIResponseSQLException.class)
   public ResponseEntity<ErrorResponse> handleSQLException(AIResponseSQLException e) {
-    return ResponseEntity.badRequest().body(new ErrorResponse(4, e.getMessage()));
+    return ResponseEntity.internalServerError().body(new ErrorResponse(4, e.getMessage()));
   }
 
   @ExceptionHandler(AIResponseNotFoundException.class)
@@ -79,7 +80,28 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(AuthResponseException.class)
   public ResponseEntity<ErrorResponse> handleAuthResponseException(AuthResponseException e) {
-    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-        .body(new ErrorResponse(9, e.getMessage()));
+    return e.getMessage().equalsIgnoreCase("null")
+        ? ResponseEntity.internalServerError().body(new ErrorResponse(9, "unexpected error"))
+        : ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+            .body(new ErrorResponse(10, e.getMessage()));
+  }
+
+  @ExceptionHandler(AiResponseSaveDataException.class)
+  public ResponseEntity<ErrorResponse> handleSaveDataException(AiResponseSaveDataException e) {
+    return ResponseEntity.internalServerError().body(new ErrorResponse(11, e.getMessage()));
+  }
+
+  @ExceptionHandler(AIResponseGetDataException.class)
+  public ResponseEntity<ErrorResponse> handleGetDataException(AIResponseGetDataException e) {
+    return ResponseEntity.internalServerError().body(new ErrorResponse(12, e.getMessage()));
+  }
+
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  public ResponseEntity<ErrorResponse> handleUnreadableMessage(HttpMessageNotReadableException e) {
+    String message =
+        e.getMessage().contains("body") || e.getMessage().contains("missing")
+            ? "request body is required"
+            : e.getMessage();
+    return ResponseEntity.badRequest().body(new ErrorResponse(13, message));
   }
 }

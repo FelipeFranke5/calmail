@@ -3,8 +3,10 @@ package br.com.frankefelipe5.calmail.api.service;
 import br.com.frankefelipe5.calmail.api.assembler.AIResponseAssembler;
 import br.com.frankefelipe5.calmail.api.dto.AIResponseDTO;
 import br.com.frankefelipe5.calmail.api.dto.Request;
+import br.com.frankefelipe5.calmail.api.exception.AIResponseGetDataException;
 import br.com.frankefelipe5.calmail.api.exception.AIResponseNotFoundException;
 import br.com.frankefelipe5.calmail.api.exception.AIResponseSQLException;
+import br.com.frankefelipe5.calmail.api.exception.AiResponseSaveDataException;
 import br.com.frankefelipe5.calmail.api.external.APIRequest;
 import br.com.frankefelipe5.calmail.api.model.AIResponse;
 import br.com.frankefelipe5.calmail.api.repository.AIResponseRepository;
@@ -67,8 +69,13 @@ public class AIResponseService {
   public AIResponseDTO saveData(Request request) {
     String responseToBeSaved =
         new APIRequest(request, chatModel, aiResponseRepository).getGeneratedResponse();
-    AIResponse aiResponse = aiResponseRepository.save(new AIResponse(request, responseToBeSaved));
-    return aiResponseAssembler.toModel(aiResponse);
+    try {
+      AIResponse aiResponse = aiResponseRepository.save(new AIResponse(request, responseToBeSaved));
+      return aiResponseAssembler.toModel(aiResponse);
+    } catch (Exception exception) {
+      logger.error("exception at saveData() --- ", exception);
+      throw new AiResponseSaveDataException("could not save response from external API");
+    }
   }
 
   @Transactional
@@ -77,9 +84,14 @@ public class AIResponseService {
   }
 
   private AIResponse getAiResponse(UUID id) {
-    return aiResponseRepository
-        .findById(id)
-        .orElseThrow(
-            () -> new AIResponseNotFoundException("unable to find an response with id = " + id));
+    try {
+      return aiResponseRepository
+          .findById(id)
+          .orElseThrow(
+              () -> new AIResponseNotFoundException("unable to find an response with id = " + id));
+    } catch (Exception exception) {
+      logger.error("exception raised at getAiResponse(UUID id)", exception);
+      throw new AIResponseGetDataException("unable to retrieve data");
+    }
   }
 }
