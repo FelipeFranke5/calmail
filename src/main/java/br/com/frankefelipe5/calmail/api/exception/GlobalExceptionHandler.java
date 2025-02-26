@@ -43,7 +43,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(SecurityException.class)
   public ResponseEntity<ErrorResponse> handleSecurityException(SecurityException e) {
-    return ResponseEntity.badRequest().body(new ErrorResponse(5, "security error"));
+    return ResponseEntity.internalServerError().body(new ErrorResponse(5, e.getMessage()));
   }
 
   @ExceptionHandler(HttpRequestMethodNotSupportedException.class)

@@ -26,7 +26,7 @@ public class SecurityConfig {
               oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(new JWTConverter())));
       return httpSecurity.build();
     } catch (Exception exception) {
-      logger.error("Security Config Error", exception);
+      logger.error("security config error", exception);
       throw new SecurityException(exception);
     }
   }
