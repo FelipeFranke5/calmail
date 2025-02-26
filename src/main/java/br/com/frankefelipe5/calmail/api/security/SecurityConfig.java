@@ -22,6 +22,10 @@ public class SecurityConfig {
     try {
       httpSecurity
           .csrf(csrf -> csrf.disable())
+          .authorizeHttpRequests(auth -> auth
+            .requestMatchers("api/auth/**").permitAll()
+            .anyRequest().authenticated()
+          )
           .oauth2ResourceServer(
               oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(new JWTConverter())));
       return httpSecurity.build();
