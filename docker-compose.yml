@@ -10,6 +10,7 @@ services:
     env_file: ".env"
   auth-with-keycloak:
     image: quay.io/keycloak/keycloak:26.1
+    hostname: auth-with-keycloak
     environment:
       KC_HOSTNAME: ${KC_HOSTNAME}
       KC_HOSTNAME_PORT: 7080
