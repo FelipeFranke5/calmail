@@ -13,8 +13,6 @@ import org.springframework.web.client.RestClientResponseException;
 
 public class AuthRequest {
 
-  private static final String KC_TOKEN_BASE_URL = System.getenv("KC_REQUEST_BASE_URL");
-
   private static final Logger logger = LoggerFactory.getLogger(AuthRequest.class);
   private UserDTO userDTO;
   private RestClient restClient;
@@ -24,6 +22,14 @@ public class AuthRequest {
     this.userDTO = userDTO;
     this.setRestClient();
     this.setBody();
+  }
+
+  public String getBaseURL() {
+    try {
+      return System.getenv("KC_TOKEN_BASE_URL");
+    } catch (Exception exception) {
+      throw new AuthResponseException("could not get base URL for authorization service");
+    }
   }
 
   public UserDTO getUserDTO() {
@@ -51,7 +57,7 @@ public class AuthRequest {
   }
 
   public void setRestClient() {
-    this.restClient = RestClient.builder().baseUrl(KC_TOKEN_BASE_URL).build();
+    this.restClient = RestClient.builder().baseUrl(this.getBaseURL()).build();
   }
 
   public String getAccessToken() {
@@ -67,13 +73,13 @@ public class AuthRequest {
         logger.error("error getting access token - response is null");
         logger.error("payload: " + this.getBody().toString());
         throw new AuthResponseException(
-            "error getting access token - resourceServer returned null");
+            "error getting access token - authorization service returned null");
       }
       return response.getAccessToken();
     } catch (RestClientResponseException httpCallException) {
       StringBuilder errorMessage = new StringBuilder();
       errorMessage
-          .append("resource server returned with status code: ")
+          .append("authorization service returned with status code: ")
           .append(httpCallException.getStatusCode().value())
           .append(" - messge: ")
           .append(httpCallException.getResponseBodyAsString());
