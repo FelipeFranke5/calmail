@@ -22,8 +22,9 @@ services:
 
   nginx:
     image: frankefelipe5/calmai-nginx
-    args:
-      - ENV=${ACTIVE_PROFILE}
+    build:
+      args:
+        - ENV=${ACTIVE_PROFILE}
     ports:
       - "80:80"
     networks:
