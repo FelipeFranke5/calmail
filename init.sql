@@ -1,0 +1,4 @@
+CREATE SCHEMA calmail;
+CREATE SCHEMA keycloak;
+CREATE DATABASE calmail;
+CREATE DATABASE keycloak;

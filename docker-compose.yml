@@ -4,24 +4,33 @@ services:
     networks:
       - api_net
     env_file: ".env"
+
   auth-with-keycloak:
     image: quay.io/keycloak/keycloak:26.1
     hostname: auth-with-keycloak
     environment:
       KC_HOSTNAME: ${KC_HOSTNAME}
-      KC_HOSTNAME_STRICT: "false"
-      KC_HOSTNAME_PORT: 7080
+      KC_DB: ${POSTGRES_DB_NAME}
+      KC_DB_URL: jdbc:postgresql://${KC_DB_URL_DOMAIN_LOCAL}/${POSTGRES_DB_NAME}
+      KC_DB_PASSWORD: ${POSTGRES_PASS}
+      KC_HOSTNAME_PORT: ${KC_HOSTNAME_PORT}
       KC_HOSTNAME_STRICT_BACKCHANNEL: "true"
-      KC_LOG_LEVEL: info
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_PROXY: edge
+      KC_HTTP_PORT: ${KC_HTTP_PORT}
+      KC_HTTPS_PORT: ${KC_HTTPS_PORT}
+      KC_PROXY_HEADERS: ${KC_PROXY_HEADERS}
+      KC_HTTP_ENABLED: "true"
+      KC_HTTP_MAX_QUEUED_REQUESTS: "10"
     networks:
       - api_net
     env_file: ".env"
-    command: ["start-dev", "--http-port", "7080", "--https-port", "7443"]
+    command: ["start-dev"]
 
   nginx:
     image: frankefelipe5/calmai-nginx
+    env_file: ".env"
     build:
       args:
         - ENV=${ACTIVE_PROFILE}
@@ -32,8 +41,18 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
     depends_on:
-      - api
+      - database
       - auth-with-keycloak
+      - api
+
+  database:
+    image: frankefelipe5/calmail-db
+    env_file: ".env"
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASS}
+      - POSTGRES_DB=${POSTGRES_DB_NAME}
+    networks:
+      - api_net
 
 networks:
   api_net:
