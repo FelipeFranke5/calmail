@@ -7,11 +7,11 @@ import org.springframework.hateoas.RepresentationModel;
 public class AIResponseDTO extends RepresentationModel<AIResponseDTO> {
 
   private UUID id;
-  private Request request;
+  private AIRequest request;
   private String responseText;
   private Instant createdAt;
 
-  public AIResponseDTO(UUID id, String responseText, Request request, Instant createdAt) {
+  public AIResponseDTO(UUID id, String responseText, AIRequest request, Instant createdAt) {
     this.id = id;
     this.request = request;
     this.responseText = responseText;
@@ -34,11 +34,11 @@ public class AIResponseDTO extends RepresentationModel<AIResponseDTO> {
     this.responseText = responseText;
   }
 
-  public Request getRequest() {
+  public AIRequest getRequest() {
     return request;
   }
 
-  public void setRequest(Request request) {
+  public void setRequest(AIRequest request) {
     this.request = request;
   }
 

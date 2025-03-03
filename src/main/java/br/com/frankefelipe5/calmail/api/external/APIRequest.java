@@ -1,6 +1,6 @@
 package br.com.frankefelipe5.calmail.api.external;
 
-import br.com.frankefelipe5.calmail.api.dto.Request;
+import br.com.frankefelipe5.calmail.api.dto.AIRequest;
 import br.com.frankefelipe5.calmail.api.exception.APIRequestException;
 import br.com.frankefelipe5.calmail.api.repository.AIResponseRepository;
 import br.com.frankefelipe5.calmail.api.util.AIResponseFileWriter;
@@ -16,17 +16,16 @@ import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.openai.OpenAiChatModel;
-import org.springframework.util.Assert;
 
 public class APIRequest {
 
   private final Logger logger = LoggerFactory.getLogger(APIRequest.class);
-  private final Request request;
+  private final AIRequest request;
   private final OpenAiChatModel chatModel;
   private final AIResponseRepository aiResponseRepository;
 
   public APIRequest(
-      Request request, OpenAiChatModel chatModel, AIResponseRepository aiResponseRepository) {
+      AIRequest request, OpenAiChatModel chatModel, AIResponseRepository aiResponseRepository) {
     this.request = request;
     this.chatModel = chatModel;
     this.aiResponseRepository = aiResponseRepository;
@@ -89,24 +88,24 @@ public class APIRequest {
 
   public String getSystemRoleFromFile() {
     try {
-      return Files.readString(Paths.get("src/main/resources/ai_role_pt.txt"));
+      return Files.readString(Paths.get("target/ai_role_pt.txt"));
     } catch (IOException ioException) {
       logger.error("ERROR WHILE TRYING TO GET THE SYSTEM ROLE !!!", ioException);
-      throw new APIRequestException(ioException.getMessage());
+      throw new APIRequestException("could not open file 'ai_role_pt.txt', check if it exists");
     }
   }
 
   public String getSystemContextFromFile() {
     try {
-      return Files.readString(Paths.get("src/main/resources/responses.txt"));
+      return Files.readString(Paths.get("target/responses.txt"));
     } catch (IOException ioException) {
       logger.error("ERROR WHILE TRYING TO GET THE SYSTEM CONTEXT !!!", ioException);
-      throw new APIRequestException(ioException.getMessage());
+      throw new APIRequestException("could not open file 'responses.txt', check if it exists");
     }
   }
 
   public String getRequestDataAsString() {
-    Assert.notNull(this.request, "request cannot be null");
+    if (this.request == null) throw new APIRequestException("request is null");
     StringBuilder builder = new StringBuilder();
     if (this.request.name() != null) {
       builder.append("Nome: " + this.request.name());

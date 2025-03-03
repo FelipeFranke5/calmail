@@ -1,7 +1,7 @@
 package br.com.frankefelipe5.calmail.api.controller;
 
+import br.com.frankefelipe5.calmail.api.dto.AIRequest;
 import br.com.frankefelipe5.calmail.api.dto.AIResponseDTO;
-import br.com.frankefelipe5.calmail.api.dto.Request;
 import br.com.frankefelipe5.calmail.api.service.AIResponseService;
 import java.util.HashMap;
 import java.util.UUID;
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/responses")
 public class AIResponseController {
 
   private final AIResponseService aiResponseService;
@@ -57,14 +57,14 @@ public class AIResponseController {
             ? false
             : Boolean.parseBoolean(orderByCreatedAt);
     HashMap<String, Object> responseBody = new HashMap<>();
-    responseBody.put("results", aiResponseService.listAll(order));
+    responseBody.put("_results", aiResponseService.listAll(order));
     responseBody.put("order", order);
     return ResponseEntity.ok().body(responseBody);
   }
 
   @CrossOrigin
   @PostMapping("/create")
-  public ResponseEntity<AIResponseDTO> createScript(@RequestBody Request requestBody) {
+  public ResponseEntity<AIResponseDTO> createScript(@RequestBody AIRequest requestBody) {
     AIResponseDTO response = aiResponseService.saveData(requestBody);
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }

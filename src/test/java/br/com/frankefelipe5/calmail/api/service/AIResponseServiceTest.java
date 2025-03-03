@@ -9,8 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import br.com.frankefelipe5.calmail.api.assembler.AIResponseAssembler;
+import br.com.frankefelipe5.calmail.api.dto.AIRequest;
 import br.com.frankefelipe5.calmail.api.dto.AIResponseDTO;
-import br.com.frankefelipe5.calmail.api.dto.Request;
+import br.com.frankefelipe5.calmail.api.exception.AIResponseNotFoundException;
 import br.com.frankefelipe5.calmail.api.exception.AIResponseSQLException;
 import br.com.frankefelipe5.calmail.api.model.AIResponse;
 import br.com.frankefelipe5.calmail.api.repository.AIResponseRepository;
@@ -32,7 +33,7 @@ public class AIResponseServiceTest {
   private static AIResponseAssembler aiResponseAssembler;
   private static OpenAiChatModel chatModel;
   private static AIResponseService aiResponseService;
-  private static Request request1, request2;
+  private static AIRequest request1, request2;
   private static AIResponse aiResponse1, aiResponse2, aiResponse3;
   private static UUID someUUID1, someUUID2;
 
@@ -40,8 +41,8 @@ public class AIResponseServiceTest {
   static void setUpBeforeAll() {
     someUUID1 = UUID.randomUUID();
     someUUID2 = UUID.randomUUID();
-    request1 = new Request("Request Test 1", false, false, null, null, "Test Message!");
-    request2 = new Request("Request Test 2", true, true, 7, "Pending", "Test Message!");
+    request1 = new AIRequest("Request Test 1", false, false, null, null, "Test Message!");
+    request2 = new AIRequest("Request Test 2", true, true, 7, "Pending", "Test Message!");
     aiResponse1 = new AIResponse(someUUID1, "Some Response", Instant.now());
     aiResponse2 = new AIResponse(someUUID2, "Some Another Response", Instant.now().plusSeconds(10));
     aiResponse3 = new AIResponse(UUID.randomUUID(), "Some Other Response", Instant.now());
@@ -156,5 +157,17 @@ public class AIResponseServiceTest {
     // Then
     assertNotNull(actual);
     assertEquals(expected, actual);
+  }
+
+  @Test
+  @DisplayName(
+      "Test findResponseById throws AIResponseNotFoundException when AIResponse is not found")
+  void testFindResponseById_When_IdDoesNotCorrespondToAnyInstance_ShouldThrowException() {
+    UUID nonExistentUUID = UUID.randomUUID();
+    Mockito.when(aiResponseRepository.findById(nonExistentUUID)).thenReturn(Optional.empty());
+    assertThrows(
+        AIResponseNotFoundException.class,
+        () -> aiResponseService.findResponseById(nonExistentUUID),
+        "Expected findResponseById to throw, but it didn't");
   }
 }

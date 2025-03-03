@@ -1,6 +1,6 @@
 package br.com.frankefelipe5.calmail.api.model;
 
-import br.com.frankefelipe5.calmail.api.dto.Request;
+import br.com.frankefelipe5.calmail.api.dto.AIRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -32,7 +32,7 @@ public class AIResponse {
     this.setCreatedAt(createdAt);
   }
 
-  public AIResponse(Request request, String responseText) {
+  public AIResponse(AIRequest request, String responseText) {
     this.request = request;
     this.responseText = responseText;
   }
@@ -43,7 +43,7 @@ public class AIResponse {
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(nullable = false, updatable = false)
-  private Request request;
+  private AIRequest request;
 
   @Column(nullable = false, updatable = false, length = 2048)
   private String responseText;
@@ -60,11 +60,11 @@ public class AIResponse {
     this.id = id;
   }
 
-  public Request getRequest() {
+  public AIRequest getRequest() {
     return request;
   }
 
-  public void setRequest(Request request) {
+  public void setRequest(AIRequest request) {
     this.request = request;
   }
 

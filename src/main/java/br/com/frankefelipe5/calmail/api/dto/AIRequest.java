@@ -2,14 +2,14 @@ package br.com.frankefelipe5.calmail.api.dto;
 
 import br.com.frankefelipe5.calmail.api.exception.RequestException;
 
-public record Request(
+public record AIRequest(
     String name,
     Boolean recurrent,
     Boolean hasProtocol,
     Integer protocolDeadlineInDays,
     String protocolStatus,
     String message) {
-  public Request {
+  public AIRequest {
     validateRequiredArgs(recurrent, hasProtocol);
     validateHasProtocolWithRequiredArgs(hasProtocol, protocolDeadlineInDays, protocolStatus);
     validateDeadline(protocolDeadlineInDays);
@@ -17,37 +17,37 @@ public record Request(
     validateMessage(message);
   }
 
-  public Request() {
+  public AIRequest() {
     this(null, null, null, null, null, null);
   }
 
-  public Request(String name) {
+  public AIRequest(String name) {
     this(name, null, null, null, null, null);
   }
 
-  public Request(Boolean recurrent, Boolean hasProtocol, String message) {
+  public AIRequest(Boolean recurrent, Boolean hasProtocol, String message) {
     this(null, recurrent, hasProtocol, null, null, message);
   }
 
-  public Request(
+  public AIRequest(
       Boolean hasProtocol, Integer protocolDeadlineInDays, String protocolStatus, String message) {
     this(null, null, hasProtocol, protocolDeadlineInDays, protocolStatus, message);
   }
 
-  public Request(Boolean recurrent, String message) {
+  public AIRequest(Boolean recurrent, String message) {
     this(null, recurrent, null, null, null, message);
   }
 
-  public Request(Boolean recurrent, Boolean hasProtocol, String protocolStatus, String message) {
+  public AIRequest(Boolean recurrent, Boolean hasProtocol, String protocolStatus, String message) {
     this(null, recurrent, hasProtocol, null, protocolStatus, message);
   }
 
-  public Request(
+  public AIRequest(
       Boolean recurrent, Boolean hasProtocol, Integer protocolDeadlineInDays, String message) {
     this(null, recurrent, hasProtocol, protocolDeadlineInDays, null, message);
   }
 
-  public Request(
+  public AIRequest(
       Boolean recurrent,
       Boolean hasProtocol,
       Integer protocolDeadlineInDays,
@@ -56,8 +56,12 @@ public record Request(
     this(null, recurrent, hasProtocol, protocolDeadlineInDays, protocolStatus, message);
   }
 
-  public Request(Boolean recurrent, Boolean hasProtocol) {
+  public AIRequest(Boolean recurrent, Boolean hasProtocol) {
     this(null, recurrent, hasProtocol, null, null, null);
+  }
+
+  public AIRequest(String name, boolean recurrent, boolean hasProtocol, String message) {
+    this(name, recurrent, hasProtocol, null, null, message);
   }
 
   private void validateRequiredArgs(Boolean recurrent, Boolean hasProtocol) {

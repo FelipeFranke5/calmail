@@ -7,10 +7,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.spy;
 
-import br.com.frankefelipe5.calmail.api.dto.Request;
+import br.com.frankefelipe5.calmail.api.dto.AIRequest;
 import br.com.frankefelipe5.calmail.api.exception.APIRequestException;
 import br.com.frankefelipe5.calmail.api.model.AIResponse;
 import br.com.frankefelipe5.calmail.api.repository.AIResponseRepository;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -20,6 +23,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
@@ -44,7 +48,7 @@ public class APIRequestTest {
 
   @Mock private AIResponseRepository aiResponseRepository;
 
-  private Request request = buildDefaultRequestOne();
+  private AIRequest request = buildDefaultRequestOne();
 
   private APIRequest apiRequest;
 
@@ -72,37 +76,31 @@ public class APIRequestTest {
   @Test
   @DisplayName("Test getGeneratedResponse returns a String when we have a list of messages")
   void testGetGeneratedResponse_When_MessagesListHasOneMessage_ShouldReturnAssistantMessage() {
-    // Given
     List<Message> messages = buildDefaultMessageListOne();
     ChatResponse chatResponse = buildDefaultChatResponseOne();
     Mockito.when(aiResponseRepository.findAll()).thenReturn(buildDefaultAiResponseListOne());
     Mockito.doReturn(messages).when(apiRequest).getMessages();
     Mockito.when(chatModel.call(any(Prompt.class))).thenReturn(chatResponse);
-    // When
     String generatedResponse = apiRequest.getGeneratedResponse();
-    // Then
     assertNotNull(generatedResponse, () -> "generatedResponse returned null");
     assertTrue(generatedResponse.equals("assistant message"));
   }
 
-  private Request buildDefaultRequestOne() {
-    return new Request("Test", true, false, null, null, "Test message");
+  private AIRequest buildDefaultRequestOne() {
+    return new AIRequest("Test", true, false, null, null, "Test message");
   }
 
   @Test
   @DisplayName("Test getPrompt throws APIRequestException when the list of messages is null")
   void testGetPrompt_When_MessagesListIsNull_ShouldThrowAPIRequestException() {
-    // Given
     List<Message> messages = null;
     Mockito.doReturn(messages).when(apiRequest).getMessages();
-    // When
     APIRequestException exception =
         assertThrowsExactly(
             APIRequestException.class,
             () -> {
               apiRequest.getPrompt();
             });
-    // Then
     assertEquals(
         "list of messages cannot be null",
         exception.getMessage(),
@@ -115,12 +113,9 @@ public class APIRequestTest {
   @Test
   @DisplayName("Test getPrompt does not throw when the list of messages is not null")
   void testGetPrompt_When_MessagesListIsNotNull_ShouldReturnPromptInstance() {
-    // Given
     List<Message> messages = buildDefaultMessageListOne();
     Mockito.doReturn(messages).when(apiRequest).getMessages();
-    // When
     Prompt prompt = apiRequest.getPrompt();
-    // Then
     assertNotNull(prompt, () -> "the prompt is null, which is not expected in this test");
     assertTrue(
         prompt.getInstructions().size() == 2,
@@ -132,17 +127,14 @@ public class APIRequestTest {
       "Test getPrompt throws APIRequestException when one of the messages have empty content")
   void
       testGetPrompt_When_MessagesListHasOneMessageWithEmptyContent_ShouldThrowAPIRequestException() {
-    // Given
     List<Message> messages = buildDefaultMessageListTwo();
     Mockito.doReturn(messages).when(apiRequest).getMessages();
-    // When
     APIRequestException exception =
         assertThrowsExactly(
             APIRequestException.class,
             () -> {
               apiRequest.getPrompt();
             });
-    // Then
     assertEquals(
         "all messages should have content",
         exception.getMessage(),
@@ -155,19 +147,16 @@ public class APIRequestTest {
   @Test
   @DisplayName("Test getMessages throws APIRequestException when one of the messages is null")
   void testGetMessages_When_OneMessageIsNull_ShouldThrowAPIRequestException() {
-    // Given
     Message message1 = buildDefaultSystemMessageOne();
     Message message2 = null;
     Mockito.doReturn(message1).when(apiRequest).getSystemMessage();
     Mockito.doReturn(message2).when(apiRequest).getUserMessage();
-    // When
     APIRequestException exception =
         assertThrowsExactly(
             APIRequestException.class,
             () -> {
               apiRequest.getMessages();
             });
-    // Then
     assertEquals(
         "user message cannot be null",
         exception.getMessage(),
@@ -180,14 +169,11 @@ public class APIRequestTest {
   @Test
   @DisplayName("Test getMessages does not throw when all messages are not null")
   void testGetMessages_When_MessagesAreNotNull_ShouldReturnListOfMessages() {
-    // Given
     Message message1 = buildDefaultSystemMessageOne();
     Message message2 = buildDefaultUserMessageOne();
     Mockito.doReturn(message1).when(apiRequest).getSystemMessage();
     Mockito.doReturn(message2).when(apiRequest).getUserMessage();
-    // When
     List<Message> messages = apiRequest.getMessages();
-    // Then
     assertNotNull(messages, () -> "'messages' is null, which is not excpected here");
     assertTrue(messages.size() == 2);
   }
@@ -195,21 +181,18 @@ public class APIRequestTest {
   @Test
   @DisplayName("Test getUserMessage throws APIRequestException when requestData is empty")
   void testGetUserMessage_When_RequestDataIsEmpty_ShouldThrowAPIRequestException() {
-    // Given
     String requestData = "";
     String systemRole = "am filled";
     String systemContext = "am filled";
     Mockito.doReturn(requestData).when(apiRequest).getRequestDataAsString();
     Mockito.doReturn(systemRole).when(apiRequest).getSystemRoleFromFile();
     Mockito.doReturn(systemContext).when(apiRequest).getSystemContextFromFile();
-    // When
     APIRequestException exception =
         assertThrowsExactly(
             APIRequestException.class,
             () -> {
               apiRequest.getUserMessage();
             });
-    // Then
     assertEquals(
         "request data cannot be empty",
         exception.getMessage(),
@@ -219,21 +202,18 @@ public class APIRequestTest {
   @Test
   @DisplayName("Test getUserMessage throws APIRequestException when systemRole is empty")
   void testGetUserMessage_When_SystemRoleIsEmpty_ShouldThrowAPIRequestException() {
-    // Given
     String requestData = "am filled";
     String systemRole = "";
     String systemContext = "am filled";
     Mockito.doReturn(requestData).when(apiRequest).getRequestDataAsString();
     Mockito.doReturn(systemRole).when(apiRequest).getSystemRoleFromFile();
     Mockito.doReturn(systemContext).when(apiRequest).getSystemContextFromFile();
-    // When
     APIRequestException exception =
         assertThrowsExactly(
             APIRequestException.class,
             () -> {
               apiRequest.getUserMessage();
             });
-    // Then
     assertEquals(
         "system role cannot be empty",
         exception.getMessage(),
@@ -243,16 +223,13 @@ public class APIRequestTest {
   @Test
   @DisplayName("Test getUserMessage does not throw when systemRole and requestData are not empty")
   void testGetUserMessage_When_SystemRoleAndRequestDataAreNotNull_ShouldReturnMessageInstance() {
-    // Given
     String requestData = "am filled req data";
     String systemRole = "am filled sys role";
     String systemContext = "am filled sys ctx";
     Mockito.doReturn(requestData).when(apiRequest).getRequestDataAsString();
     Mockito.doReturn(systemRole).when(apiRequest).getSystemRoleFromFile();
     Mockito.doReturn(systemContext).when(apiRequest).getSystemContextFromFile();
-    // When
     Message returnedMessage = apiRequest.getUserMessage();
-    // Then
     assertNotNull(returnedMessage);
     assertEquals(
         "am filled sys ctx\n\nam filled sys role\n\nam filled req data", returnedMessage.getText());
@@ -261,10 +238,8 @@ public class APIRequestTest {
   @Test
   @DisplayName("Test getSystemMessage throws APIRequestException when systemRoleMessage is empty")
   void testGetSystemMessage_When_SystemRoleIsEmpty_ShouldThrowAPIRequestException() {
-    // Given
     String systemRoleMessage = "";
     Mockito.doReturn(systemRoleMessage).when(apiRequest).getSystemRoleFromFile();
-    // When
     APIRequestException exception =
         assertThrowsExactly(
             APIRequestException.class,
@@ -272,7 +247,6 @@ public class APIRequestTest {
               apiRequest.getSystemMessage();
             });
     assertNotNull(exception);
-    // Then
     assertEquals(
         "ai_role_pt.txt cannot be empty",
         exception.getMessage(),
@@ -282,14 +256,112 @@ public class APIRequestTest {
   @Test
   @DisplayName("Test getSystemMessage does not throw when systemRoleMessage is filled")
   void testGetSystemMessage_When_SystemRoleIsNotEmpty_ShouldReturnSystemMessage() {
-    // Given
     String systemRoleMessage = "am filled";
     Mockito.doReturn(systemRoleMessage).when(apiRequest).getSystemRoleFromFile();
-    // When
     Message returnedMessage = apiRequest.getSystemMessage();
-    // Then
-    assertNotNull(returnedMessage);
+    assertNotNull(returnedMessage, () -> "returnedMessage is null");
     assertEquals(systemRoleMessage, returnedMessage.getText());
+  }
+
+  @Test
+  @DisplayName("Test getSystemRoleFromFile does not throw when file exists")
+  void testGetSystemRoleFromFile_When_FileExists_ShouldReturnContent() {
+    try (MockedStatic<Files> filesMock = Mockito.mockStatic(Files.class)) {
+      filesMock
+          .when(() -> Files.readString(Paths.get("target/ai_role_pt.txt")))
+          .thenReturn("example");
+      String actual = apiRequest.getSystemRoleFromFile();
+      assertNotNull(actual, () -> "actual is null");
+      assertEquals("example", actual, () -> "actual text is not 'example'");
+    }
+  }
+
+  @Test
+  @DisplayName("Test getSystemRoleFromFile throws APIRequestException when file does not exist")
+  void testGetSystemRoleFromFile_When_FileDoesNotExist_ShouldThrow() {
+    try (MockedStatic<Files> filesMock = Mockito.mockStatic(Files.class)) {
+      filesMock
+          .when(() -> Files.readString(Paths.get("target/ai_role_pt.txt")))
+          .thenThrow(new IOException("could not open file 'ai_role_pt.txt', check if it exists"));
+      APIRequestException exception =
+          assertThrowsExactly(
+              APIRequestException.class,
+              () -> {
+                apiRequest.getSystemRoleFromFile();
+              });
+      assertNotNull(exception);
+      assertEquals(
+          "could not open file 'ai_role_pt.txt', check if it exists", exception.getMessage());
+    }
+  }
+
+  @Test
+  @DisplayName("Test getSystemContextFromFile does not throw when file exists")
+  void testGetSystemContextFromFile_When_FileExists_ShouldReturnContent() {
+    try (MockedStatic<Files> filesMock = Mockito.mockStatic(Files.class)) {
+      filesMock
+          .when(() -> Files.readString(Paths.get("target/responses.txt")))
+          .thenReturn("example");
+      String actual = apiRequest.getSystemContextFromFile();
+      assertNotNull(actual, () -> "actual is null");
+      assertEquals("example", actual, () -> "actual text is not 'example'");
+    }
+  }
+
+  @Test
+  @DisplayName("Test getSystemContextFromFile throws APIRequestException when file does not exist")
+  void testGetSystemContextFromFile_When_FileDoesNotExist_ShouldThrow() {
+    try (MockedStatic<Files> filesMock = Mockito.mockStatic(Files.class)) {
+      filesMock
+          .when(() -> Files.readString(Paths.get("target/responses.txt")))
+          .thenThrow(new IOException("could not open file 'responses.txt', check if it exists"));
+      APIRequestException exception =
+          assertThrowsExactly(
+              APIRequestException.class,
+              () -> {
+                apiRequest.getSystemContextFromFile();
+              });
+      assertNotNull(exception);
+      assertEquals(
+          "could not open file 'responses.txt', check if it exists", exception.getMessage());
+    }
+  }
+
+  @Test
+  @DisplayName("Test getRequestDataAsString throws APIRequestException when request is null")
+  void testGrtRequestDataAsString_When_RequestIsNull_Throws() {
+    APIRequestException exception =
+        assertThrowsExactly(
+            APIRequestException.class,
+            () -> {
+              APIRequest myApiRequest = spy(new APIRequest(null, chatModel, aiResponseRepository));
+              myApiRequest.getRequestDataAsString();
+            },
+            () ->
+                "getRequestDataAsString() was supposed to throw APIRequestException when the value of request is null");
+    assertNotNull(exception);
+    assertEquals("request is null", exception.getMessage());
+  }
+
+  @Test
+  @DisplayName("Test getRequestDataAsString returns content")
+  void testGetRequestDataAsString_When_RequestIsNotNull_ReturnsContent() {
+    AIRequest customRequest = new AIRequest("example", false, false, "example");
+    APIRequest customAPIRequest =
+        spy(new APIRequest(customRequest, chatModel, aiResponseRepository));
+    String requestData = customAPIRequest.getRequestDataAsString();
+    assertTrue(
+        requestData.contains("Nome: example"),
+        () -> "requestData does not contain 'Nome: example'");
+    assertTrue(
+        requestData.contains("Problema Recorrente: Não"),
+        () -> "requestData does not contain 'Problema Recorrente: Não'");
+    assertTrue(
+        requestData.contains("Possui Protocolo: Não"),
+        () -> "requestData does not contain 'Possui protocolo: Não'");
+    assertTrue(
+        requestData.contains("Mensagem: example"),
+        () -> "requestData does not contain 'Mensagem: example'");
   }
 
   private List<Message> buildDefaultMessageListOne() {
