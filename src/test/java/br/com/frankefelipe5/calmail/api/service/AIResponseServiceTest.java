@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import br.com.frankefelipe5.calmail.api.assembler.AIResponseAssembler;
-import br.com.frankefelipe5.calmail.api.dto.AIRequest;
 import br.com.frankefelipe5.calmail.api.dto.AIResponseDTO;
 import br.com.frankefelipe5.calmail.api.exception.AIResponseNotFoundException;
 import br.com.frankefelipe5.calmail.api.exception.AIResponseSQLException;
@@ -33,19 +32,15 @@ public class AIResponseServiceTest {
   private static AIResponseAssembler aiResponseAssembler;
   private static OpenAiChatModel chatModel;
   private static AIResponseService aiResponseService;
-  private static AIRequest request1, request2;
-  private static AIResponse aiResponse1, aiResponse2, aiResponse3;
+  private static AIResponse aiResponse1, aiResponse2;
   private static UUID someUUID1, someUUID2;
 
   @BeforeAll
   static void setUpBeforeAll() {
     someUUID1 = UUID.randomUUID();
     someUUID2 = UUID.randomUUID();
-    request1 = new AIRequest("Request Test 1", false, false, null, null, "Test Message!");
-    request2 = new AIRequest("Request Test 2", true, true, 7, "Pending", "Test Message!");
     aiResponse1 = new AIResponse(someUUID1, "Some Response", Instant.now());
     aiResponse2 = new AIResponse(someUUID2, "Some Another Response", Instant.now().plusSeconds(10));
-    aiResponse3 = new AIResponse(UUID.randomUUID(), "Some Other Response", Instant.now());
   }
 
   @BeforeEach
