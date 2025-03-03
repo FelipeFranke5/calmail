@@ -1,0 +1,11 @@
+== Consulta por ID
+
+=== Path Parameters:
+include::{snippets}/responses/generated/get-response-by-id/path-parameters.adoc[]
+
+=== Requisição:
+include::{snippets}/responses/generated/get-response-by-id/http-request.adoc[]
+
+=== Resposta:
+include::{snippets}/responses/generated/get-response-by-id/http-response.adoc[]
+include::{snippets}/responses/generated/get-response-by-id/response-fields.adoc[]
