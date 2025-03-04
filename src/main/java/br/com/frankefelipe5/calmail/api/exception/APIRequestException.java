@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 public class APIRequestException extends RuntimeException {
-  public APIRequestException(String message) {
-    super(message);
-  }
+    public APIRequestException(String message) {
+        super(message);
+    }
 }

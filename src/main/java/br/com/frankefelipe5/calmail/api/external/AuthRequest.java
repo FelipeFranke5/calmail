@@ -10,57 +10,56 @@ import org.springframework.web.client.RestClient;
 
 public class AuthRequest {
 
-  private UserDTO userDTO;
-  private RestClient restClient;
-  private MultiValueMap<String, String> body;
+    private UserDTO userDTO;
+    private RestClient restClient;
+    private MultiValueMap<String, String> body;
 
-  public AuthRequest(UserDTO userDTO) {
-    this.setUserDTO(userDTO);
-    this.setRestClient();
-    this.setBody();
-  }
+    public AuthRequest(UserDTO userDTO) {
+        this.setUserDTO(userDTO);
+        this.setRestClient();
+        this.setBody();
+    }
 
-  public String getBaseURL() {
-    return System.getenv("KC_TOKEN_BASE_URL");
-  }
+    public String getBaseURL() {
+        return System.getenv("KC_TOKEN_BASE_URL");
+    }
 
-  public UserDTO getUserDTO() {
-    return userDTO;
-  }
+    public UserDTO getUserDTO() {
+        return userDTO;
+    }
 
-  private void setUserDTO(UserDTO userDTO) {
-    this.userDTO = userDTO;
-  }
+    private void setUserDTO(UserDTO userDTO) {
+        this.userDTO = userDTO;
+    }
 
-  public RestClient getRestClient() {
-    return restClient;
-  }
+    public RestClient getRestClient() {
+        return restClient;
+    }
 
-  public MultiValueMap<String, String> getBody() {
-    return body;
-  }
+    public MultiValueMap<String, String> getBody() {
+        return body;
+    }
 
-  private void setBody() {
-    this.body = new LinkedMultiValueMap<>();
-    this.body.add("client_id", this.userDTO.clientId());
-    this.body.add("username", this.userDTO.username());
-    this.body.add("password", this.userDTO.password());
-    this.body.add("grant_type", this.userDTO.grantType());
-  }
+    private void setBody() {
+        this.body = new LinkedMultiValueMap<>();
+        this.body.add("client_id", this.userDTO.clientId());
+        this.body.add("username", this.userDTO.username());
+        this.body.add("password", this.userDTO.password());
+        this.body.add("grant_type", this.userDTO.grantType());
+    }
 
-  private void setRestClient() {
-    this.restClient = RestClient.builder().baseUrl(this.getBaseURL()).build();
-  }
+    private void setRestClient() {
+        this.restClient = RestClient.builder().baseUrl(this.getBaseURL()).build();
+    }
 
-  public String getAccessToken() {
-    AuthResponseDTO response =
-        this.getRestClient()
-            .post()
-            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-            .body(this.getBody())
-            .retrieve()
-            .body(AuthResponseDTO.class);
-    if (response == null) throw new AuthResponseException("authorization service returned null");
-    return response.getAccessToken();
-  }
+    public String getAccessToken() {
+        AuthResponseDTO response = this.getRestClient()
+                .post()
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .body(this.getBody())
+                .retrieve()
+                .body(AuthResponseDTO.class);
+        if (response == null) throw new AuthResponseException("authorization service returned null");
+        return response.getAccessToken();
+    }
 }

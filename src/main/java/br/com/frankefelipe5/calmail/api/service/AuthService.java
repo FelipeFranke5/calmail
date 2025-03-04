@@ -7,10 +7,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuthService {
 
-  private AuthRequest authRequest;
+    private AuthRequest authRequest;
 
-  public String getAuthToken(UserDTO userDTO) {
-    this.authRequest = new AuthRequest(userDTO);
-    return this.authRequest.getAccessToken();
-  }
+    public String getAuthToken(UserDTO userDTO) {
+        this.authRequest = new AuthRequest(userDTO);
+        return this.authRequest.getAccessToken();
+    }
 }

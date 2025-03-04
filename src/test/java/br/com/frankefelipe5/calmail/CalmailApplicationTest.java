@@ -6,6 +6,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 public class CalmailApplicationTest {
 
-  @Test
-  void contextLoads() {}
+    @Test
+    void contextLoads() {}
 }

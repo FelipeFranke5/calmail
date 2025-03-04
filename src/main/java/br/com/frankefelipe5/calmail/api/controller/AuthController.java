@@ -16,17 +16,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-  private AuthService authService;
+    private AuthService authService;
 
-  public AuthController(AuthService authService) {
-    this.authService = authService;
-  }
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
 
-  @CrossOrigin
-  @PostMapping
-  public ResponseEntity<HashMap<String, Object>> getAuthToken(@RequestBody @Valid UserDTO userDTO) {
-    HashMap<String, Object> response = new HashMap<>();
-    response.put("acess_token", this.authService.getAuthToken(userDTO));
-    return ResponseEntity.status(HttpStatus.CREATED.value()).body(response);
-  }
+    @CrossOrigin
+    @PostMapping
+    public ResponseEntity<HashMap<String, Object>> getAuthToken(@RequestBody @Valid UserDTO userDTO) {
+        HashMap<String, Object> response = new HashMap<>();
+        response.put("acess_token", this.authService.getAuthToken(userDTO));
+        return ResponseEntity.status(HttpStatus.CREATED.value()).body(response);
+    }
 }
