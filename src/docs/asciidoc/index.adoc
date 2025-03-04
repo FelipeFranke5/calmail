@@ -1,11 +1,68 @@
-== Consulta por ID
+= Documentação oficial do calmail
 
-=== Path Parameters:
+
+== Endpoints para *Consultar*, *Criar* ou *Apagar* uma resposta gerada pela IA e seus registros.
+
+
+=== Obter Resposta por ID
+
+==== Consulta bem-sucedida
+
+===== Header da Requisição:
+include::{snippets}/responses/generated/get-response-by-id/request-headers.adoc[]
+
+===== Path Parameters:
 include::{snippets}/responses/generated/get-response-by-id/path-parameters.adoc[]
 
-=== Requisição:
+===== Requisição:
 include::{snippets}/responses/generated/get-response-by-id/http-request.adoc[]
 
-=== Resposta:
+===== Resposta:
 include::{snippets}/responses/generated/get-response-by-id/http-response.adoc[]
 include::{snippets}/responses/generated/get-response-by-id/response-fields.adoc[]
+
+===== Links:
+include::{snippets}/responses/generated/get-response-by-id/links.adoc[]
+
+
+==== Consulta mal-sucedida (ID não encontrado)
+
+===== Header da Requisição:
+include::{snippets}/responses/generated/get-response-by-id-not-found/request-headers.adoc[]
+
+===== Path Parameters:
+include::{snippets}/responses/generated/get-response-by-id-not-found/path-parameters.adoc[]
+
+===== Requisição:
+include::{snippets}/responses/generated/get-response-by-id-not-found/http-request.adoc[]
+
+===== Resposta:
+include::{snippets}/responses/generated/get-response-by-id-not-found/http-response.adoc[]
+include::{snippets}/responses/generated/get-response-by-id-not-found/response-fields.adoc[]
+
+
+==== Consulta mal-sucedida (ID em formato incorreto)
+
+===== Header da Requisição:
+include::{snippets}/responses/generated/get-response-by-id-with-invalid-id/request-headers.adoc[]
+
+===== Path Parameters:
+include::{snippets}/responses/generated/get-response-by-id-with-invalid-id/path-parameters.adoc[]
+
+===== Requisição:
+include::{snippets}/responses/generated/get-response-by-id-with-invalid-id/http-request.adoc[]
+
+===== Resposta:
+include::{snippets}/responses/generated/get-response-by-id-with-invalid-id/http-response.adoc[]
+include::{snippets}/responses/generated/get-response-by-id-with-invalid-id/response-fields.adoc[]
+
+==== Consulta mal-sucedida (Autenticação não realizada)
+
+===== Path Parameters:
+include::{snippets}/responses/generated/get-response-by-id-unauthorized/path-parameters.adoc[]
+
+===== Requisição:
+include::{snippets}/responses/generated/get-response-by-id-unauthorized/http-request.adoc[]
+
+===== Resposta:
+include::{snippets}/responses/generated/get-response-by-id-unauthorized/http-response.adoc[]
