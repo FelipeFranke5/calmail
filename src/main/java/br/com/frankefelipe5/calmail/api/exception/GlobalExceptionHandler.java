@@ -1,12 +1,20 @@
 package br.com.frankefelipe5.calmail.api.exception;
 
 import br.com.frankefelipe5.calmail.api.dto.ErrorResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.ai.retry.NonTransientAiException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -16,6 +24,8 @@ import org.springframework.web.client.HttpServerErrorException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+  private static final Logger debugger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
   @ExceptionHandler(RequestException.class)
   public ResponseEntity<ErrorResponse> handleRequest(RequestException e) {
@@ -90,10 +100,12 @@ public class GlobalExceptionHandler {
         .body(new ErrorResponse(ErrorCode.USER_DTO_EXCEPTION.value(), e.getMessage()));
   }
 
-  @ExceptionHandler(AuthResponseException.class)
-  public ResponseEntity<ErrorResponse> handleAuthResponseException(AuthResponseException e) {
+  @ExceptionHandler({AuthResponseException.class, AuthenticationException.class})
+  public ResponseEntity<ErrorResponse> handleAuthResponseException() {
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED.value())
-        .body(new ErrorResponse(ErrorCode.AUTH_RESPONSE_EXCEPTION.value(), e.getMessage()));
+        .body(
+            new ErrorResponse(
+                ErrorCode.AUTH_RESPONSE_EXCEPTION.value(), "please authenticate to proceed"));
   }
 
   @ExceptionHandler(IllegalArgumentException.class)
@@ -124,5 +136,70 @@ public class GlobalExceptionHandler {
     detail.put("externalServiceResponseBody", e.getResponseBodyAsString());
     return ResponseEntity.status(e.getStatusCode().value())
         .body(new ErrorResponse(ErrorCode.HTTP_SERVER_ERROR_EXCEPTION.value(), detail));
+  }
+
+  @ExceptionHandler(NonTransientAiException.class)
+  public ResponseEntity<ErrorResponse> handleNonTransientAiException(NonTransientAiException e) {
+    boolean returnIs401 = e.getMessage().startsWith("401");
+    boolean returnIs400 = e.getMessage().startsWith("400");
+    boolean returnIs429 = e.getMessage().startsWith("429");
+    if (!(returnIs401 || returnIs400 || returnIs429)) {
+      return this.invalidOperationMessage(e);
+    }
+    debugger.error("error while calling AI: ", e);
+    String[] separatedResponse = e.getMessage().split("- ");
+    String jsonPart = separatedResponse[1];
+    try {
+      return this.errorMessagege(returnIs401, returnIs400, jsonPart);
+    } catch (JsonProcessingException notAJson) {
+      return this.parseErrorMessage(notAJson);
+    }
+  }
+
+  private ResponseEntity<ErrorResponse> errorMessagege(
+      boolean returnIs401, boolean returnIs400, String jsonPart)
+      throws JsonProcessingException, JsonMappingException {
+    ObjectMapper mapper = new ObjectMapper();
+    JsonNode responseNode = mapper.readTree(jsonPart);
+    if (returnIs401) {
+      return this.unauthorizedMessage();
+    } else if (returnIs400) {
+      return this.badRequestMessage(responseNode);
+    } else {
+      return this.limitRateMessage();
+    }
+  }
+
+  private ResponseEntity<ErrorResponse> parseErrorMessage(JsonProcessingException notAJson) {
+    debugger.error("error parsing because: ", notAJson);
+    return ResponseEntity.internalServerError()
+        .body(
+            new ErrorResponse(
+                ErrorCode.PARSING_JSON.value(), "internal server error - parsing error"));
+  }
+
+  private ResponseEntity<ErrorResponse> limitRateMessage() {
+    return ResponseEntity.internalServerError()
+        .body(
+            new ErrorResponse(
+                ErrorCode.NON_TRANSIENT_AI_EXCEPTION.value(), "reached usage limit for AI API"));
+  }
+
+  private ResponseEntity<ErrorResponse> badRequestMessage(JsonNode responseNode) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST.value())
+        .body(new ErrorResponse(ErrorCode.NON_TRANSIENT_AI_EXCEPTION.value(), responseNode));
+  }
+
+  private ResponseEntity<ErrorResponse> unauthorizedMessage() {
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED.value())
+        .body(
+            new ErrorResponse(
+                ErrorCode.NON_TRANSIENT_AI_EXCEPTION.value(), "unauthorized acess to the AI API"));
+  }
+
+  private ResponseEntity<ErrorResponse> invalidOperationMessage(NonTransientAiException e) {
+    debugger.error("called: ", e);
+    return ResponseEntity.internalServerError()
+        .body(new ErrorResponse(ErrorCode.NON_TRANSIENT_AI_EXCEPTION.value(), "invalid operation"));
   }
 }
