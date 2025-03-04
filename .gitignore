@@ -39,3 +39,6 @@ build/
 *.env
 .env
 *.gz
+
+### html ###
+*.html
