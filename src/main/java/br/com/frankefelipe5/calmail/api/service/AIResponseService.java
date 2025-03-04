@@ -3,6 +3,7 @@ package br.com.frankefelipe5.calmail.api.service;
 import br.com.frankefelipe5.calmail.api.assembler.AIResponseAssembler;
 import br.com.frankefelipe5.calmail.api.dto.AIRequest;
 import br.com.frankefelipe5.calmail.api.dto.AIResponseDTO;
+import br.com.frankefelipe5.calmail.api.exception.AIResponseAcessNotGrantedException;
 import br.com.frankefelipe5.calmail.api.exception.AIResponseNotFoundException;
 import br.com.frankefelipe5.calmail.api.exception.AIResponseSQLException;
 import br.com.frankefelipe5.calmail.api.external.APIRequest;
@@ -19,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.dao.DataAccessException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -37,6 +39,14 @@ public class AIResponseService {
     this.aiResponseRepository = aiResponseRepository;
     this.aiResponseAssembler = aiResponseAssembler;
     this.chatModel = chatModel;
+  }
+
+  private void validateUserPermission() {
+    var authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (!authentication.isAuthenticated()) throw new SecurityException();
+    if (!authentication.getName().equalsIgnoreCase(System.getenv("KEYCLOAK_ADMIN"))) throw new AIResponseAcessNotGrantedException(
+      "authenticated user does not have acess to this resource"
+    );
   }
 
   public List<AIResponseDTO> listAll(boolean orderByCreatedAt) {
@@ -60,6 +70,7 @@ public class AIResponseService {
   }
 
   public void deleteResponseById(UUID id) {
+    this.validateUserPermission();
     AIResponse aiResponse = this.getAiResponse(id);
     aiResponseRepository.delete(aiResponse);
   }
@@ -73,6 +84,7 @@ public class AIResponseService {
 
   @Transactional
   public void clearResponses() {
+    this.validateUserPermission();
     aiResponseRepository.deleteAll();
   }
 
