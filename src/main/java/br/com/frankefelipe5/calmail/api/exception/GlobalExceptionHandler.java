@@ -143,6 +143,7 @@ public class GlobalExceptionHandler {
     boolean returnIs401 = e.getMessage().startsWith("401");
     boolean returnIs400 = e.getMessage().startsWith("400");
     boolean returnIs429 = e.getMessage().startsWith("429");
+
     if (!(returnIs401 || returnIs400 || returnIs429)) {
       return this.invalidOperationMessage(e);
     }
@@ -150,13 +151,13 @@ public class GlobalExceptionHandler {
     String[] separatedResponse = e.getMessage().split("- ");
     String jsonPart = separatedResponse[1];
     try {
-      return this.errorMessagege(returnIs401, returnIs400, jsonPart);
+      return this.errorMessage(returnIs401, returnIs400, jsonPart);
     } catch (JsonProcessingException notAJson) {
       return this.parseErrorMessage(notAJson);
     }
   }
 
-  private ResponseEntity<ErrorResponse> errorMessagege(
+  private ResponseEntity<ErrorResponse> errorMessage(
       boolean returnIs401, boolean returnIs400, String jsonPart)
       throws JsonProcessingException, JsonMappingException {
     ObjectMapper mapper = new ObjectMapper();
