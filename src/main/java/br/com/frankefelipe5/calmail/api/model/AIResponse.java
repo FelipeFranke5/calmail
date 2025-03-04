@@ -15,7 +15,12 @@ import org.hibernate.type.SqlTypes;
 @Entity
 public class AIResponse {
 
-  public AIResponse() {}
+  public AIResponse(UUID id, String responseText, AIRequest aiRequest, Instant createdAt) {
+    this.setId(id);
+    this.setResponseText(responseText);
+    this.setRequest(aiRequest);
+    this.setCreatedAt(createdAt);
+  }
 
   public AIResponse(UUID id, String responseText) {
     this.setId(id);
