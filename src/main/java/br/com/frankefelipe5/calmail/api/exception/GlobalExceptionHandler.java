@@ -157,6 +157,13 @@ public class GlobalExceptionHandler {
     }
   }
 
+  @ExceptionHandler(AIResponseAcessNotGrantedException.class)
+  public ResponseEntity<ErrorResponse> handleAIResponseAcessNotGrantedException(AIResponseAcessNotGrantedException e) {
+    return ResponseEntity.status(HttpStatus.FORBIDDEN.value()).body(new ErrorResponse(ErrorCode.ACESS_NOT_GRANTED_EXCEPTION.value(), e.getMessage()));
+  }
+
+  // Helper functions below
+
   private ResponseEntity<ErrorResponse> errorMessage(
       boolean returnIs401, boolean returnIs400, String jsonPart)
       throws JsonProcessingException, JsonMappingException {
